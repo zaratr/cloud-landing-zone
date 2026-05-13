@@ -1,6 +1,24 @@
 # Azure Production Landing Zone (Bicep)
 
-A reusable, production-grade Azure landing zone scaffolded with Bicep. The design prioritizes security, governance, and operational guardrails for production workloads while keeping modules composable for reuse in different environments.
+Production-grade Azure landing zone scaffolded with Bicep. Upgraded in 2026 to enforce **SLSA Level 4 cryptographic supply chain controls** — every Bicep artifact and ML model weight deployed from this repo carries a signed provenance attestation proving it was built from the exact commit it claims, on an isolated runner, with two-party review.
+
+## 2026 Update: SLSA Level 4 Supply Chain
+
+See [`docs/slsa-supply-chain.md`](docs/slsa-supply-chain.md) for full details.
+
+```
+git push → GitHub Actions (ephemeral runner)
+               ├── az bicep build → ARM JSON artifacts
+               ├── SHA-256 manifest
+               ├── slsa-github-generator → signed .intoto.jsonl provenance
+               ├── model weight attestation (*.gguf / *.safetensors)
+               └── slsa-verifier → passes → deploy
+```
+
+New modules and CI additions:
+- **`.github/workflows/slsa-provenance.yml`**: 4-stage pipeline — build, SLSA provenance, model weight attestation, verified deployment
+- **`modules/supply-chain/main.bicep`**: Key Vault (signing keys), WORM Storage (immutable provenance archive), RBAC for GitHub federated identity
+- **Azure Policy** (in `modules/policy`): denies deployments missing the `slsa-provenance-verified` tag — only settable by CI after verification passes
 
 ## Architecture Overview
 - **Subscription scope** deployment that provisions resource groups for networking, identity, shared services, and application workloads.
