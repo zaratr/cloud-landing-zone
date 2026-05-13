@@ -1,6 +1,8 @@
 # Azure Production Landing Zone (Bicep)
 
-Production-grade Azure landing zone scaffolded with Bicep. Upgraded in 2026 to enforce **SLSA Level 4 cryptographic supply chain controls** — every Bicep artifact and ML model weight deployed from this repo carries a signed provenance attestation proving it was built from the exact commit it claims, on an isolated runner, with two-party review.
+Production-grade, subscription-scoped Azure landing zone built in Bicep — hub/spoke networking, RBAC, Key Vault, Azure Policy governance, and Log Analytics. Upgraded in 2026 to enforce **SLSA Level 4 cryptographic supply chain** controls: every Bicep artifact and ML model weight carries a Sigstore-signed provenance attestation and cannot be deployed without passing `slsa-verifier`.
+
+**Skills demonstrated:** Azure · Bicep / IaC · SLSA Level 4 supply chain security · Sigstore / cosign · GitHub Actions · RBAC · Azure Policy · network security · cloud governance
 
 ## 2026 Update: SLSA Level 4 Supply Chain
 
