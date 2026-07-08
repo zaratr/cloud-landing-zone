@@ -1,0 +1,74 @@
+name: Bicep Validate & Lint
+
+# Validates every Bicep template compiles to valid ARM and passes Azure
+# best-practice linting (PSRule for Azure). Runs on push/PR so broken or
+# non-compliant IaC is caught before merge — the test harness the landing
+# zone was previously missing.
+#
+# Two stages:
+#   1. build  — `az bicep build` on every .bicep file (syntax + type check)
+#   2. psrule — PSRule.Rules.Azure lint against the compiled ARM (best practices)
+
+on:
+  push:
+    branches: [main]
+    paths: ['**/*.bicep', '.github/workflows/bicep-validate.yml']
+  pull_request:
+    branches: [main]
+    paths: ['**/*.bicep', '.github/workflows/bicep-validate.yml']
+
+permissions:
+  contents: read
+  security-events: write  # for SARIF upload if added later
+
+jobs:
+  build:
+    name: Bicep build (syntax + type check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Build every .bicep file
+        run: |
+          set -e
+          # Find all .bicep files and verify each compiles to valid ARM JSON.
+          # `az bicep build` fails on syntax errors, type mismatches, or
+          # unresolved references — catching issues before deploy.
+          failed=0
+          for f in $(find . -name '*.bicep' -not -path './.git/*'); do
+            echo "::group::Building $f"
+            az bicep build --file "$f" --stdout > /dev/null || { echo "::error file=$f::Build failed"; failed=1; }
+            echo "::endgroup::"
+          done
+          exit $failed
+
+  psrule:
+    name: PSRule for Azure (best-practice lint)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Azure CLI + Bicep
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Compile Bicep to ARM for analysis
+        run: |
+          mkdir -p .artifacts
+          for f in $(find . -name '*.bicep' -not -path './.git/*'); do
+            base=$(basename "$f" .bicep)
+            az bicep build --file "$f" --outfile ".artifacts/${base}.json"
+          done
+
+      - name: Run PSRule for Azure
+        uses: microsoft/ps-rule@v2
+        with:
+          modules: PSRule.Rules.Azure
+          inputPath: .artifacts
+          # Outcome Report — process results; the action fails on rule errors.
+          outcome: Processed
