@@ -1,4 +1,8 @@
-// Governance policies and diagnostic enforcement
+// Governance policies and diagnostic enforcement.
+// targetScope is subscription: policyDefinitions, policyAssignments, and
+// subscription-level diagnosticSettings are all deployed at subscription scope.
+targetScope = 'subscription'
+
 @description('Base name prefix for policy naming')
 param namePrefix string
 
@@ -85,7 +89,7 @@ resource allowedRegionsDefinition 'Microsoft.Authorization/policyDefinitions@202
     policyRule: {
       if: {
         field: 'location'
-        notIn: '[parameters(''listOfAllowedLocations'')]'
+        notIn: '[parameters(\'listOfAllowedLocations\')]'
       }
       then: {
         effect: 'deny'
