@@ -1,4 +1,9 @@
-// Custom RBAC definitions and assignments without owner permissions
+// Custom RBAC definitions and assignments without owner permissions.
+// targetScope is subscription because roleDefinitions and roleAssignments are
+// deployed at subscription scope (the parent main.bicep invokes this module
+// without a resourceGroup scope).
+targetScope = 'subscription'
+
 @description('Base name prefix for resources')
 param namePrefix string
 
@@ -24,22 +29,11 @@ resource platformAdminDefinition 'Microsoft.Authorization/roleDefinitions@2022-0
   properties: {
     roleName: platformAdminRoleName
     description: 'Platform administrator with elevated management permissions excluding role assignments/ownership.'
-    assignableScopes: [ rgScope ]
+    assignableScopes: [rgScope]
     permissions: [
       {
-        actions: [
-          '*/read',
-          'Microsoft.Authorization/locks/*',
-          'Microsoft.Support/*',
-          'Microsoft.Resources/deployments/*',
-          'Microsoft.Network/*',
-          'Microsoft.KeyVault/*',
-          'Microsoft.OperationalInsights/*'
-        ]
-        notActions: [
-          'Microsoft.Authorization/roleAssignments/*',
-          'Microsoft.Authorization/roleDefinitions/*'
-        ]
+        actions: ['*/read', 'Microsoft.Authorization/locks/*', 'Microsoft.Support/*', 'Microsoft.Resources/deployments/*', 'Microsoft.Network/*', 'Microsoft.KeyVault/*', 'Microsoft.OperationalInsights/*']
+        notActions: ['Microsoft.Authorization/roleAssignments/*', 'Microsoft.Authorization/roleDefinitions/*']
       }
     ]
   }
@@ -51,22 +45,11 @@ resource appOperatorDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-
   properties: {
     roleName: appOperatorRoleName
     description: 'Application operator for deploying and managing workloads without broad IAM privileges.'
-    assignableScopes: [ rgScope ]
+    assignableScopes: [rgScope]
     permissions: [
       {
-        actions: [
-          'Microsoft.Resources/subscriptions/resourceGroups/read',
-          'Microsoft.Resources/deployments/*',
-          'Microsoft.Compute/*',
-          'Microsoft.Network/virtualNetworks/subnets/*',
-          'Microsoft.Network/networkInterfaces/*',
-          'Microsoft.KeyVault/vaults/*',
-          'Microsoft.ContainerService/*'
-        ]
-        notActions: [
-          'Microsoft.Authorization/*',
-          'Microsoft.Network/publicIPAddresses/*'
-        ]
+        actions: ['Microsoft.Resources/subscriptions/resourceGroups/read', 'Microsoft.Resources/deployments/*', 'Microsoft.Compute/*', 'Microsoft.Network/virtualNetworks/subnets/*', 'Microsoft.Network/networkInterfaces/*', 'Microsoft.KeyVault/vaults/*', 'Microsoft.ContainerService/*']
+        notActions: ['Microsoft.Authorization/*', 'Microsoft.Network/publicIPAddresses/*']
       }
     ]
   }
@@ -78,10 +61,10 @@ resource auditorDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' 
   properties: {
     roleName: auditorRoleName
     description: 'Read-only auditor role for compliance and inspection.'
-    assignableScopes: [ rgScope ]
+    assignableScopes: [rgScope]
     permissions: [
       {
-        actions: [ '*/read' ]
+        actions: ['*/read']
         notActions: []
       }
     ]
