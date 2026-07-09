@@ -94,12 +94,12 @@ jobs:
       # requires a published release.
       upload-assets: false
       provenance-name: iac-provenance.intoto.jsonl
-    # continue-on-error: the v2.0.0 'final' job has a known aggregation quirk
-    # where SUCCESS=false even when the generator and upload steps succeed with
-    # upload-assets:false. The provenance IS generated and attested; this flag
-    # prevents that downstream signal from failing the whole workflow. Remove
-    # when upgrading to a generator version that fixes the final-job computation.
-    continue-on-error: true
+    # NOTE: the v2.0.0 'final' job has a known aggregation quirk where it sets
+    # SUCCESS=false (exit 27) even when the generator and upload steps succeed
+    # with upload-assets:false. The provenance IS generated and attested via
+    # the Artifact Attestations API. continue-on-error is not valid on reusable-
+    # workflow call jobs, so this job will show 'failure' — but the provenance
+    # output is real. Downstream jobs use 'if: always()' to tolerate it.
 
   # ── Stage 3: Attest model weights (if present in models/) ───────────────────
   attest-model-weights:
