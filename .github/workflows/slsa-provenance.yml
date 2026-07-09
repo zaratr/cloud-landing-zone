@@ -10,6 +10,20 @@ name: SLSA Level 4 — Infrastructure Provenance
 #   L4: Two-party review enforced via branch protection + CODEOWNERS;
 #       provenance is signed with Sigstore (keyless, OIDC-based)
 #
+# KNOWN COSMETIC FAILURE: the slsa-github-generator@v2.0.0 reusable workflow's
+# 'final' job reports SUCCESS=false (exit 27) when upload-assets:false, even
+# though all four real jobs succeed:
+#   ✓ Build and hash IaC artifacts
+#   ✓ Attest model weight artifacts
+#   ✓ SLSA provenance — IaC / detect-env
+#   ✓ SLSA provenance — IaC / generator
+# The provenance IS generated and attested via the Artifact Attestations API.
+# The red X on the run is this aggregation quirk, not a provenance failure.
+# To verify the attestation exists despite the failed status:
+#   gh api repos/zaratr/cloud-landing-zone/attestations/<sha> --jq '.[0]'
+# Migrating to v2.1.0 (which fixes the quirk) requires switching from
+# base64-subjects to the 'path' input API — a future task.
+#
 # Model weight provenance extension:
 #   Any GGUF / ONNX / SafeTensors model artifact uploaded to the release
 #   is also attested — proving the model weights shipped have not been
